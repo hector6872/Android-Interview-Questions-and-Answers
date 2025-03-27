@@ -1,0 +1,41 @@
+name: "Deploy Wiki"
+on:
+  push:
+  workflow_dispatch:
+    branches:
+      - main
+    paths:
+      - 'wiki/**'
+      - '.github/workflows/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  Deploy-Wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          path: repository
+      - name: Checkout Wiki
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}.wiki.git
+          path: wiki
+          ref: master
+      - name: Copy files
+        run: |
+          rm -rf $GITHUB_WORKSPACE/wiki/*
+          cp -R $GITHUB_WORKSPACE/repository/wiki/. $GITHUB_WORKSPACE/wiki
+          cd $GITHUB_WORKSPACE/wiki
+          git add .
+          git config user.email "actions@github.com"
+          git config user.name "Deploy Wiki[bot]"         
+          git diff-index --quiet HEAD -- || git commit -m "Update Wiki"
+          git push
