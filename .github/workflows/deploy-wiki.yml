@@ -1,7 +1,6 @@
 name: "Deploy Wiki"
 on:
   push:
-  workflow_dispatch:
     branches:
       - main
     paths:
